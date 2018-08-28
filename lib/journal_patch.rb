@@ -9,9 +9,16 @@ module RedmineHelpdesk
     end
 
     module InstanceMethods
+      # Перезаписываем метод send_notification
+      # который вызывается только когда журнал обновляется
       # Overrides the send_notification method which
       # is only called on journal updates
       def send_notification_with_helpdesk()
+
+
+        # если обновлена задача: добавдена запись в журнал,
+        # обновлён статус, обновлён приоритет
+        # Quick tip: !obj.blank? == obj.present?
         if notify? &&
             (Setting.notified_events.include?('issue_updated') ||
               (Setting.notified_events.include?('issue_note_added') && notes.present?) ||
@@ -20,6 +27,8 @@ module RedmineHelpdesk
             )
           Mailer.deliver_issue_edit(self)
         end
+        # Отправляем уведомление конечному пользователю
+        # только если чекбокс send_to_owner отмечен
         # sending email notifications to the supportclient
         # only if the send_to_owner checkbox was checked
         if send_to_owner == true && notes.length != 0

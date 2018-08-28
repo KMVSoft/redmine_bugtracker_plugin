@@ -27,12 +27,17 @@ class HelpdeskHooks < Redmine::Hook::Listener
   
   # add a history note on the journal
   def view_issues_history_journal_bottom(context={})
+    # если записи в журнале есть
     return if (context[:journal].nil? || context[:journal].notes.nil? || context[:journal].notes.length == 0)
+    # если чек-бокс отмечен
     return unless context[:journal].send_to_owner == true
     i = Issue.find(context[:journal].journalized_id)
     c = CustomField.find_by_name('owner-email')
+    # берём email end-user
     owner_email = i.custom_value_for(c).try(:value)
+    # проверяем не пустой ли email
     return if owner_email.blank?
+    # рендерим нашу кастомную note
     action_view = ActionView::Base.new(File.dirname(__FILE__) + '/../app/views/')
     action_view.render(:partial => "issue_history", :locals => {:email => owner_email})
   end
